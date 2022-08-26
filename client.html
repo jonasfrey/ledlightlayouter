@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>instant messenger</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        <div id="app">
+        </div>
+    
+        <style>
+            canvas{
+                image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  width: 100vw;
+            }
+.o_led {
+    background-color: rgba(0,255,0,0.1);
+    border-radius:50%;
+    border: 1px solid green;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+.o_led:hover{
+    background-color: rgba(0,255,0,0.8);
+}
+.o_led.b_active{
+    background-color: rgba(0,255,0,0.8);
+}
+
+.row {
+    display: flex;
+    width: auto;
+    flex: 0 0  auto;
+}
+        </style>
+        <script src="" async defer></script>
+        <script type="module">
+import Vue from 'https://unpkg.com/vue@2.6.0/dist/vue.esm.browser.min.js';
+
+import O_json_to_html from "https://unpkg.com/o_json_to_html@1.0.6/o_json_to_html.module.js"
+
+var o_json_to_html = new O_json_to_html()
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("app").append(
+        o_json_to_html.f_json_to_html(
+            {
+                s_t:"div",
+                class: "a_o_led",
+                a_c: [
+                    {
+                        "v-html": "'n_width'"
+                    },
+                    {
+                        s_t: "input", 
+                        "type": "number", 
+                        "min": 1, 
+                        "max": 100,
+                        "v-model": "n_width",
+                    },
+                    {
+                        "v-html": "'n_height'"
+                    },
+                    {
+                        s_t: "input", 
+                        "type": "number", 
+                        "min": 1, 
+                        "max": 50,
+                        "v-model": "n_height",
+                    },
+                    {
+                        "v-html": "'n_o_led_n_size_mm'"
+                    },
+                    {
+                        s_t: "input", 
+                        "type": "number", 
+                        "min": 0, 
+                        "max": 50,
+                        "v-model": "n_o_led_n_size_mm",
+                    },
+                    {
+                        "v-html": "'n_o_led_n_margin_mm'"
+                    },
+                    {
+                        s_t: "input", 
+                        "type": "number", 
+                        "min": 0, 
+                        "max": 50,
+                        "v-model": "n_o_led_n_margin_mm",
+                    },
+                    {
+                        "class": "row",
+                        'v-for': "n_y in Array.from(Array(n_height).keys())",
+                        "a_c": [
+                            {
+                                'v-for': "n_x in Array.from(Array(n_width).keys())",
+                                "v-on:click": "f_o_led_by_xy(n_x,n_y).b_active = !f_o_led_by_xy(n_x,n_y).b_active",
+                                ':class': "(f_o_led_by_xy(n_x,n_y).b_active) ? 'o_led b_active' : 'o_led'",
+                                ':style': "f_s_style_o_led()"
+                            }
+                        ] 
+                    },
+                    {
+                        's_t': 'textarea', 
+                        "v-model" : "s_css"
+                    },
+                    {
+                        "s_t": 'style', 
+                        "v-html": 's_css'
+                    }
+                ]
+            },
+        )
+    );
+
+class O_led{
+    constructor(){
+        this.b_active = false
+        this.n_size_mm = 5
+        this.n_margin_mm
+    }
+}
+
+    window.vueObject = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                n_o_led_n_size_mm: 5,
+                n_o_led_n_margin_mm: 5,
+                n_width: 20, 
+                n_height: 5,
+                a_o_led : [], 
+                o_led: null,
+                s_css: '',
+            }
+        },
+        updated: function(){
+        },
+        mounted:async function () {
+            function draw() {
+  var o_canvas = document.createElement('canvas');
+    o_canvas.width = 20
+    o_canvas.height = 20
+    o_canvas.style.width = "100vw !important"
+var o_ctx = o_canvas.getContext('2d');
+
+        o_ctx['imageSmoothingEnabled'] = false;       /* standard */
+    o_ctx['mozImageSmoothingEnabled'] = false;    /* Firefox */
+    o_ctx['oImageSmoothingEnabled'] = false;      /* Opera */
+    o_ctx['webkitImageSmoothingEnabled'] = false; /* Safari */
+    o_ctx['msImageSmoothingEnabled'] = false;     /* IE */
+  o_ctx.font = '10px consolas';
+  o_ctx.fillText('ABCD', 0, 10);
+document.body.appendChild(o_canvas)
+}
+draw()
+            this.f_update_a_o_led();
+        },
+        watch: {
+            n_width:function(){
+                this.f_update_a_o_led()
+            }, 
+            n_height: function(){
+                this.f_update_a_o_led()
+            }
+        },
+        methods:{
+            f_o_led_by_xy: function(n_x, n_y){
+                var o_led = this.a_o_led[parseInt(n_y)*parseInt(n_x) + parseInt(n_x)]
+                // console.log(o_led)
+                return o_led
+            },
+            f_update_a_o_led: function(){
+                var n_length_new = this.n_height * this.n_width
+                if(this.a_o_led.length < (n_length_new)){
+                    var n_i = 0;
+                    while(n_i < (n_length_new)){
+                        if(n_i > this.a_o_led.length)
+                        this.a_o_led.push(new O_led())
+                        console.log("new")
+                        n_i+=1;
+                    }
+                }
+            }, 
+            f_s_style_o_led: function(){
+                return `
+                width:${this.n_o_led_n_size_mm}mm;
+                height:${this.n_o_led_n_size_mm}mm;
+                margin:${this.n_o_led_n_margin_mm}mm;
+                `
+            }
+        },
+        computed: {}
+    })
+});
+
+        </script>
+        <!-- <script type="module" src="client.module.js"></script> -->
+    </body>
+</html>
