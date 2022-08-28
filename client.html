@@ -25,25 +25,64 @@
         <div id="app">
         </div>
     
-
         <style>
-            *{
-                background:darkslategrey;
-                color: lightblue;
-            }
 
-            canvas{
-                font-smooth: never;
-    -webkit-font-smoothing : none;
-                image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  width: 100vw;
-            }
-            .a_o_led {
+*{
+    background: rgba(0,0,0,0.0);
+}
+.button_b_display{
+    position: absolute;
+    top:0;
+    right:0;
+    width: 1rem; 
+    height: 1rem;
+}
+.display_flex{
+    display: flex;
+}
+.o_overlay {
+    z-index: 1;
+    padding: 0.5rem;
+    max-width: 600px;
+    position: absolute;
+    right: 0;
+    background: rgba(0,0,0,0.5);
+}
+input, button, textarea{
+    box-sizing: border-box;
+    width: 100%;
+    color: white;
+    border: 1px solid white;
+    padding: 0.5rem;
+    font-size: 1rem;
+}
+
+html{
+font-size: 1.5rem;
+font-family: Roboto;
+}
+
+.o_settings {
+    background: rgba(0,0,0,0);
+}
+
+html{
+    background:darkslategrey;
+    color: lightblue;
+}
+
+canvas{
+font-smooth: never;
+-webkit-font-smoothing : none;
+image-rendering: -moz-crisp-edges;
+image-rendering: -webkit-crisp-edges;
+image-rendering: pixelated;
+image-rendering: crisp-edges;
+width: 100vw;
+}
+.a_o_led {
     width: 100vw;
-    border: 1px solid black;
+    border: 1px solid red;
 }
 .o_led {
     position: absolute;
@@ -59,6 +98,22 @@
     background-color: rgba(0,255,0,0.8);
 }
 
+.n_calculated_width_mm,.n_calculated_height_mm {
+    position: absolute;
+    bottom: -1rem;
+    font-size: 0.5rem;
+    color: red;
+}
+.n_calculated_height_mm{
+    right:0;
+    transform:rotate(90deg);
+    transform-origin: right bottom;
+}
+
+.a_o_led {
+    position: relative;
+    box-sizing: border-box;
+}
         </style>
         <script src="" async defer></script>
         <script type="module">
@@ -66,13 +121,15 @@ import Vue from 'https://unpkg.com/vue@2.6.0/dist/vue.esm.browser.min.js';
 
 import O_json_to_html from "https://unpkg.com/o_json_to_html@1.0.6/o_json_to_html.module.js"
 
-import {O_binary_string} from "https://deno.land/x/o_binary_string@0.5/O_binary_string.module.js"
+import {O_binary_string} from "https://deno.land/x/o_binary_string@0.7/O_binary_string.module.js"
 
 // import f_evaluate_object from "https://raw.githubusercontent.com/jonasfrey/f_evaluate_object/master/f_evaluate_object.module.js" //not working since github does not send the content type /mime type 'text/javascript'
 
 //nice, deno works as a cdn
 import {f_evaluate_object} from "https://deno.land/x/f_evaluate_object@0.1/f_evaluate_object.module.js"
 
+window.o_binary_string = new O_binary_string('test', 10)
+o_binary_string.f_load_font('https://deno.land/x/o_binary_string@0.6/fonts/visitor1.ttf')
 
 var o_json_to_html = new O_json_to_html()
 document.addEventListener("DOMContentLoaded", function () {
@@ -82,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 'v-on:mousemove': "f_handle_event('mousemove', null)",
                 'v-on:mouseup': "f_handle_event('mouseup', null)",
                 s_t:"div",
-                class: "a_o_led",
                 a_c: [
                         {
                             class: "o_overlay", 
@@ -90,20 +146,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             {
                             "s_t": "h1", 
                             "v-html": "'led light layouter'", 
-                            "style": "font-family: visitor1;"
                         },
                         {
-                            class : "display_flex", 
-                            a_c: [
-                                {
-                                    "v-html": "'led light layouter'"
-                                }, 
-                                {
-                                    "s_t": "button", 
-                                    "v-html" : "'='", 
-                                    "v-on:click": "o_settings.b_display = ! o_settings.b_display"
-                                }
-                            ]
+                            "s_t": "button", 
+                            "class": "button_b_display",
+                            "v-html" : "'='", 
+                            "v-on:click": "o_settings.b_display = ! o_settings.b_display"
                         },
                         {
                             class: "o_settings",
@@ -111,24 +159,24 @@ document.addEventListener("DOMContentLoaded", function () {
                             a_c:[
 
                                 {
-                                    "v-html": "'o_settings.n_width'"
+                                    "v-html": "'o_settings.n_elements_x'"
                                 },
                                 {
                                     s_t: "input", 
                                     "type": "number", 
                                     "min": 1, 
                                     "max": 100,
-                                    "v-model": "o_settings.n_width",
+                                    "v-model": "o_settings.n_elements_x",
                                 },
                                 {
-                                    "v-html": "'o_settings.n_height'"
+                                    "v-html": "'o_settings.n_elements_y'"
                                 },
                                 {
                                     s_t: "input", 
                                     "type": "number", 
                                     "min": 1, 
                                     "max": 50,
-                                    "v-model": "o_settings.n_height",
+                                    "v-model": "o_settings.n_elements_y",
                                 },
                                 {
                                     "v-html": "'o_settings.n_size_mm'"
@@ -151,23 +199,35 @@ document.addEventListener("DOMContentLoaded", function () {
                                     "v-model": "o_settings.n_margin_mm",
                                 },
                                 {
-                                    's_t': 'textarea', 
-                                    "v-model" : "s_css"
+                                    "v-html": "'o_settings.n_font_size_px'"
                                 },
                                 {
-                                    "s_t": 'style', 
-                                    "v-html": 's_css'
-                                }
+                                    s_t: "input", 
+                                    "type": "number", 
+                                    "min": 0, 
+                                    "max": 50,
+                                    "v-model": "o_settings.n_font_size_px",
+                                },
+                                {
+                                    "v-html": "'o_settings.s_string'"
+                                },
+                                {
+                                    's_t': 'textarea', 
+                                    "v-model" : "o_settings.s_string"
+                                },
+
                             ] 
                         },
                         ]
                     },
                     
-                    {
-                        "class": 'a_o_led', 
+                    {                
+                        class: "a_o_led",
+                        ':style': "f_s_style_a_o_led()",
                         a_c:[
                             {
                                 'v-for': "obj_led in a_o_led",
+                                'v-if': "f_b_display_o_led(o_led)",
                                 'v-on:mousedown':"f_handle_event('mousedown', obj_led)",
                                 'v-on:mouseup':"f_handle_event('mouseup', obj_led)",
                                 'v-on:mousemove':"f_handle_event('mousemove', obj_led)",
@@ -175,6 +235,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                 ':class': "(obj_led.b_active) ? 'o_led b_active' : 'o_led'",
                                 ':style': "f_s_style_o_led(obj_led)"
                             },
+                            {
+                                'v-html': '`n_calculated_width_mm: ${o_settings.n_calculated_width_mm}`',
+                                'class': "n_calculated_width_mm"
+                            },
+                            {
+                                'v-html': '`n_calculated_height_mm: ${o_settings.n_calculated_height_mm}`',
+                                'class': "n_calculated_height_mm"
+                            }
                         ]
                     },
 
@@ -189,9 +257,66 @@ class O_settings{
         this.n_margin_mm = 3
         this.n_offset_x_mm = 0
         this.n_offset_y_mm = 0
-        this.n_width = 20 
-        this.n_height = 5
+        this.n_elements_x = 20 
+        this.n_elements_y = 5
         this.b_display = true
+        this.n_calculated_height_mm = 0
+        this.n_calculated_width_mm = 0
+        this.n_manual_width_mm = 0
+        this.n_manual_height_mm = 0
+        this.n_font_size_px = 10
+        this.s_string = 'Hey!'
+        this.f_update_calculated_width_mm()
+    }
+    // get s_string(){
+    //     return this._s_string
+    // }
+    // set s_string(val){
+    //     o_binary_string.s_string = String(val)
+    //     console.log(o_binary_string.s_binary_text)
+    //     this._s_string = val
+    // }
+    get n_elements_x(){
+        return this._n_elements_x
+    }
+    set n_elements_x(val){
+        this._n_elements_x = val
+        this.f_update_calculated_width_mm()
+    }
+    get n_elements_y(){
+        return this._n_elements_y
+    }
+    set n_elements_y(val){
+        this._n_elements_y = val
+        this.f_update_calculated_width_mm()
+    }
+    get n_size_mm(){
+        return this._n_size_mm
+    }
+    set n_size_mm(val){
+        this._n_size_mm = val
+        this.f_update_calculated_width_mm()
+    }
+    get n_margin_mm(){
+        return this._n_margin_mm
+    }
+    set n_margin_mm(val){
+        this._n_margin_mm = val
+        this.f_update_calculated_width_mm()
+    }
+    f_update_calculated_width_mm(){
+        console.log("f_update_calculated_width_mm")
+        this.n_calculated_width_mm = this.n_elements_x * this.n_size_mm + (this.n_elements_x-1) * this.n_margin_mm
+        this.n_calculated_height_mm = this.n_elements_y * this.n_size_mm + (this.n_elements_y-1) * this.n_margin_mm
+    }
+}
+class O_xy{
+    constructor(n_x, n_y, n_index, n_elements_x, n_elements_y){
+        this.n_x = n_x
+        this.n_y = n_y
+        this.n_index = n_index
+        this.n_elements_x = n_elements_x
+        this.n_elements_y = n_elements_y
     }
 }
 class O_mouse{
@@ -217,7 +342,7 @@ class O_led{
         data: function() {
             return {
                 o_settings: new O_settings(),
-                a_o_led : [], 
+                a_o_led : [],
                 o_led: null,
                 s_css: '',
             }
@@ -226,17 +351,70 @@ class O_led{
         },
         mounted:async function () {
             this.f_update_a_o_led()
-            
+
+            this.f_update_at_media_print_css()
         },
         watch: {
-            n_width:function(){
+            "o_settings.n_font_size_px": function(){
+                o_binary_string.n_font_size_px = this.o_settings.n_font_size_px
+                this.f_update_binary_string()
+            },
+            "o_settings.s_string": function(){
+                this.f_update_binary_string()
+            },
+            "o_settings.n_elements_x":function(){
                 this.f_update_a_o_led()
             }, 
-            n_height: function(){
+            "o_settings.n_elements_y": function(){
                 this.f_update_a_o_led()
             }
         },
         methods:{
+            f_update_binary_string(){
+                o_binary_string.s_string = String(this.o_settings.s_string)
+                console.log(o_binary_string.s_binary_text)
+                var a_s_y = o_binary_string.s_binary_text.split('\n')
+                for(var o_led of this.a_o_led){
+                    o_led.b_active = false
+                }
+                for(var n_y in a_s_y){
+                    for(var n_x in a_s_y[n_y]){                        
+                        var o_led = this.f_o_led_by_xy(n_x, n_y)
+                        if(o_led){
+                            var s_char = a_s_y[n_y][n_x]
+                            if(s_char.trim() != ''){
+                                o_led.b_active = true
+                            }else{
+                                o_led.b_active = false
+                            }
+                        }
+                    }
+                }
+            },
+            f_b_display_o_led(o_led){
+                var o_xy = this.f_o_xy_by_o_led(o_led)
+                return(
+                    o_xy.n_x < this.o_settings.n_elements_x
+                    &&
+                    o_xy.n_y < this.o_settings.n_elements_y
+                )
+            },
+            f_update_at_media_print_css(){
+                var s_css = ``
+                var a_o_style = document.querySelectorAll("style")
+                for(o_style of a_o_style){
+                    s_css += o_style.innerText
+                }
+                
+                s_css +=`*{
+                    -webkit-print-color-adjust: exact;
+                }`
+
+                s_css = `@media print {${s_css}}`
+                var o_style = document.createElement("style")
+                o_style.innerHTML = s_css
+                document.head.appendChild(o_style)
+            },
             f_handle_event(s_event_name, o_object){
                 var self = this
                 if(o_object instanceof O_led){
@@ -270,14 +448,21 @@ class O_led{
                     }
                 }
             },
-
+            f_o_xy_by_o_led: function(o_led){
+                var n_index = this.a_o_led.indexOf(o_led)
+                var n_x = n_index % this.o_settings.n_elements_x; 
+                var n_y = parseInt(parseInt(this.o_settings.n_elements_x) / parseInt(n_index));
+                return new O_xy(n_x, n_y, n_index, this.o_settings.n_elements_x, this.o_settings.n_elements_y)
+            },
             f_o_led_by_xy: function(n_x, n_y){
-                var o_led = this.a_o_led[parseInt(n_y)*parseInt(n_x) + parseInt(n_x)]
+                var n_index = parseInt(n_y)*parseInt(this.o_settings.n_elements_x) + (parseInt(n_x)%this.o_settings.n_elements_x);
+                var o_led = this.a_o_led[n_index]
                 // console.log(o_led)
                 return o_led
             },
             f_update_a_o_led: function(){
-                var n_length_new = this.o_settings.n_height * this.o_settings.n_width
+                
+                var n_length_new = this.o_settings.n_elements_y * this.o_settings.n_elements_x
                 if(this.a_o_led.length < (n_length_new)){
                     var n_i = 0;
                     while(n_i < (n_length_new)){
@@ -288,10 +473,19 @@ class O_led{
                     }
                 }
             },
+            f_s_style_a_o_led: function(){
+                var s_css = 
+                `
+                    width:${this.o_settings.n_calculated_width_mm}mm;
+                    height:${this.o_settings.n_calculated_height_mm}mm;
+                `
+                console.log(s_css)
+                return s_css
+            },
             f_s_style_o_led: function(o_led){
                 var n_index = this.a_o_led.indexOf(o_led);
-                var n_x = n_index % this.o_settings.n_width; 
-                var n_y = parseInt(n_index / this.o_settings.n_width);
+                var n_x = n_index % this.o_settings.n_elements_x; 
+                var n_y = parseInt(n_index / this.o_settings.n_elements_x);
                 // console.log(n_x)
                 // console.log(n_y)
                 // console.log(n_index)
